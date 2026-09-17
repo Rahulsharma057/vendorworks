@@ -1,14 +1,13 @@
 :root {
   color-scheme: light;
 
-  /* Self-hosted system font stacks — no external font fetch at build or
-     runtime, which keeps first paint fast and the build offline-safe.
-     Want the exact Archivo + Work Sans look from the design plan? Download
-     both families' .woff2 files, drop them in /public/fonts, and add
-     @font-face rules above pointing --font-display / --font-body at them —
-     no other code needs to change. */
   --font-display: ui-sans-serif, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-body: ui-sans-serif, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+
+  --page-bg: #EDE8DE;
+  --text-primary: #1C2321;
+  --accent: #B3491A;
+  --white: #FBFAF6;
 }
 
 * {
@@ -19,17 +18,29 @@ html,
 body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   scroll-behavior: smooth;
 }
 
 body {
-  font-family: var(--font-body), sans-serif;
-  background-color: #EDE8DE;
-  /* subtle blueprint / grid-paper texture — ties the site back to site plans & drawings */
+  font-family: var(--font-body);
+  background-color: var(--page-bg);
+
   background-image:
-    linear-gradient(rgba(28, 35, 33, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(28, 35, 33, 0.045) 1px, transparent 1px);
+    linear-gradient(
+      rgba(28, 35, 33, 0.045) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(28, 35, 33, 0.045) 1px,
+      transparent 1px
+    );
+
   background-size: 32px 32px;
+  color: var(--text-primary);
 }
 
 a {
@@ -37,19 +48,140 @@ a {
   text-decoration: none;
 }
 
-::selection {
-  background: #B3491A;
-  color: #FBFAF6;
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
 }
 
-/* keyboard focus visibility */
+img {
+  height: auto;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  max-width: 100%;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--white);
+}
+
 :focus-visible {
-  outline: 2px solid #B3491A;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* --------------------------------------------------
+   Responsive Container
+-------------------------------------------------- */
+
+.container {
+  width: min(1200px, calc(100% - 40px));
+  margin-inline: auto;
+}
+
+/* --------------------------------------------------
+   Prevent long text from breaking mobile layout
+-------------------------------------------------- */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* --------------------------------------------------
+   Mobile
+-------------------------------------------------- */
+
+@media (max-width: 768px) {
+  html,
+  body {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .container {
+    width: calc(100% - 28px);
+    max-width: 100%;
+  }
+
+  section {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 9vw, 3rem);
+    line-height: 1.08;
+  }
+
+  h2 {
+    font-size: clamp(1.6rem, 7vw, 2.3rem);
+    line-height: 1.15;
+  }
+
+  h3 {
+    font-size: clamp(1.2rem, 5vw, 1.6rem);
+  }
+
+  p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+}
+
+/* --------------------------------------------------
+   Small Mobile
+-------------------------------------------------- */
+
+@media (max-width: 480px) {
+  .container {
+    width: calc(100% - 20px);
+  }
+
+  h1 {
+    font-size: clamp(1.8rem, 10vw, 2.5rem);
+  }
+
+  h2 {
+    font-size: clamp(1.5rem, 8vw, 2rem);
+  }
+
+  p {
+    font-size: 0.92rem;
+  }
+}
+
+/* --------------------------------------------------
+   Reduced Motion
+-------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
