@@ -24,14 +24,21 @@ const app = express();
 |--------------------------------------------------------------------------
 | Supports:
 | - Local frontend
-| - Vercel production
+| - New Vercel production domain
+| - Old Vercel production domain
 | - Vercel preview deployments
 |--------------------------------------------------------------------------
 */
 
 const allowedOrigins = [
+  // Local
   "http://localhost:3000",
   "http://127.0.0.1:3000",
+
+  // New production frontend
+  "https://rakesh-construction-maintenance.vercel.app",
+
+  // Old production frontend
   "https://vendorworks.vercel.app",
 ];
 
@@ -39,7 +46,7 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests without Origin
-      // (Postman, server-to-server, health checks, etc.)
+      // Postman, server-to-server, health checks, etc.
       if (!origin) {
         return callback(null, true);
       }
@@ -49,11 +56,33 @@ app.use(
         return callback(null, true);
       }
 
-      // Allow all Vercel preview URLs for this project
+      /*
+      |--------------------------------------------------------------------------
+      | Allow Vercel Preview URLs
+      |--------------------------------------------------------------------------
+      |
+      | Example:
+      | https://rakesh-construction-maintenance-xxxxx.vercel.app
+      |
+      */
+
       if (
         origin.startsWith(
-          "https://vendorworks-"
+          "https://rakesh-construction-maintenance-"
         ) &&
+        origin.endsWith(".vercel.app")
+      ) {
+        return callback(null, true);
+      }
+
+      /*
+      |--------------------------------------------------------------------------
+      | Temporary support for old Vendorworks preview URLs
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        origin.startsWith("https://vendorworks-") &&
         origin.endsWith(".vercel.app")
       ) {
         return callback(null, true);
@@ -63,12 +92,25 @@ app.use(
 
       return callback(new Error("Not allowed by CORS"));
     },
+
     credentials: true,
   })
 );
 
+/*
+|--------------------------------------------------------------------------
+| Body Parser
+|--------------------------------------------------------------------------
+*/
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+/*
+|--------------------------------------------------------------------------
+| Logger
+|--------------------------------------------------------------------------
+*/
 
 app.use(morgan("dev"));
 
@@ -79,7 +121,7 @@ app.use(morgan("dev"));
 */
 
 app.get("/api/health", (req, res) => {
-  res.json({
+  res.status(200).json({
     success: true,
     message: "API is running",
   });
@@ -118,3 +160,34 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+/*
+|--------------------------------------------------------------------------
+| Keep Backend Awake
+|--------------------------------------------------------------------------
+| Render free services can go to sleep after inactivity.
+| This sends a request to the backend health endpoint every 10 minutes.
+|--------------------------------------------------------------------------
+*/
+
+const KEEP_ALIVE_INTERVAL = 10 * 60 * 1000; // 10 minutes
+
+if (process.env.NODE_ENV === "production") {
+  setInterval(async () => {
+    try {
+      const backendUrl =
+        process.env.BACKEND_URL || "https://vendorworks.onrender.com";
+
+      const response = await fetch(`${backendUrl}/api/health`);
+
+      console.log(
+        `[KEEP-ALIVE] ${new Date().toISOString()} - Status: ${response.status}`
+      );
+    } catch (error) {
+      console.error(
+        "[KEEP-ALIVE] Failed:",
+        error.message
+      );
+    }
+  }, KEEP_ALIVE_INTERVAL);
+}
